@@ -59,7 +59,7 @@ DragNDrop.prototype.populate = function () {
             otherReplaceSpan.innerHTML = this.origElem.childNodes[i].innerHTML;
             $(otherReplaceSpan).addClass("draggable-drop");
 
-            this.setEventListeners(replaceSpan, otherReplaceSpan);
+            this.setDragStartEventListener(this, replaceSpan);
             var tmpArr = [];
             tmpArr.push(replaceSpan);
             tmpArr.push(otherReplaceSpan);
@@ -88,7 +88,6 @@ DragNDrop.prototype.createNewElements = function () {
 
     this.draggableDiv = document.createElement("div");
     $(this.draggableDiv).addClass("draggable dragzone");
-    this.addDragDivListeners();
 
     this.dropZoneDiv = document.createElement("div");
     $(this.dropZoneDiv).addClass("draggable");
@@ -113,34 +112,6 @@ DragNDrop.prototype.finishSettingUp = function () {
     } else {
         this.dragDropWrapDiv.style.minHeight = this.minheight.toString() + "px";
     }
-};
-
-DragNDrop.prototype.addDragDivListeners = function () {
-    this.draggableDiv.addEventListener("dragover", function (ev) {  // Can't set these during this.setEventListeners because this.draggableDiv wasn't created yet
-        ev.preventDefault();
-        if ($(this.draggableDiv).hasClass("possibleDrop")) {
-            return;
-        }
-        $(this.draggableDiv).addClass("possibleDrop");
-    }.bind(this));
-    this.draggableDiv.addEventListener("drop", function (ev) {
-        ev.preventDefault();
-        if ($(this.draggableDiv).hasClass("possibleDrop")) {
-            $(this.draggableDiv).removeClass("possibleDrop");
-        }
-        var data = ev.dataTransfer.getData("draggableID");
-        var draggedSpan = document.getElementById(data);
-        if (!$(this.draggableDiv).has(draggedSpan).length && !this.strangerDanger(draggedSpan)) {  // Make sure element isn't already there--prevents erros w/appending child
-            this.draggableDiv.appendChild(draggedSpan);
-        }
-    }.bind(this));
-
-    this.draggableDiv.addEventListener("dragleave", function(e) {
-        if (!$(this.draggableDiv).hasClass("possibleDrop")) {
-            return;
-        }
-        $(this.draggableDiv).removeClass("possibleDrop");
-    }.bind(this));
 };
 
 DragNDrop.prototype.createButtons = function () {
@@ -197,53 +168,84 @@ DragNDrop.prototype.appendReplacementSpans = function () {
 
 };
 
-DragNDrop.prototype.setEventListeners = function (dgSpan, dpSpan) {
+DragNDrop.prototype.setDragStartEventListener = function (obj, dgSpan) {
     // Adds HTML5 "drag and drop" UI functionality
-    dgSpan.addEventListener("dragstart", function (ev) {
-        ev.dataTransfer.setData("draggableID", ev.target.id);
+    $(dgSpan).on("dragstart", function (ev) {
+        var dropZones = $(ev.target).closest(".draggable-container").find(".dragzone, .draggable-drop");
+        ev.originalEvent.dataTransfer.effectAllowed = 'move';
+        $(dropZones).each(function(i, dpSpan) {
+            $(dpSpan).on("dragover", { id: ev.target.id }, function (ev) {
+                ev.preventDefault();
+                ev.originalEvent.dataTransfer.dropEffect = 'move';
+                var draggedSpan = document.getElementById(ev.data.id);
+                if (!$.contains(ev.currentTarget, draggedSpan)) {
+                    $(ev.currentTarget).addClass("possibleDrop");
+                }
+            });
+        
+            $(dpSpan).on("dragleave", { id: ev.target.id }, function (ev) {
+                ev.preventDefault();
+                $(ev.currentTarget).removeClass("possibleDrop");
+            });
+        
+            $(dpSpan).on("drop", { id: ev.target.id }, function (ev) {
+                var data = ev.data;
+                ev.preventDefault();
+                if ($(ev.currentTarget).hasClass("possibleDrop")) {
+                    $(ev.currentTarget).removeClass("possibleDrop");
+                    var draggedSpan = document.getElementById(ev.data.id);
+                    ev.currentTarget.appendChild(draggedSpan);
+                }
+                var dropZones = $(ev.target).closest(".draggable-container").find(".dragzone, .draggable-drop");
+                $(dropZones).each(function(i, element) {
+                    obj.removeDropEventListeners(element);
+                });
+            });
+        });
     });
-    dgSpan.addEventListener("dragover", function (ev) {
-        ev.preventDefault();
+
+    $(dgSpan).on("dragend", function (ev) {
+        var dropZones = $(ev.target).closest(".draggable-container").find(".dragzone, .draggable-drop");
+        $(dropZones).each(function(i, element) {
+            obj.removeDropEventListeners(element);
+        });
     });
-    dgSpan.addEventListener("drop", function (ev) {
-        ev.preventDefault();
-        var data = ev.dataTransfer.getData("draggableID");
-        var draggedSpan = document.getElementById(data);
-        if (this.hasNoDragChild(ev.target) && draggedSpan != ev.target && !this.strangerDanger(draggedSpan)) {  // Make sure element isn't already there--prevents erros w/appending child
-            this.draggableDiv.appendChild(draggedSpan);
-        }
-    }.bind(this));
-    dpSpan.addEventListener("dragover", function (ev) {
-        ev.preventDefault();
-        if ($(ev.target).hasClass("possibleDrop")) {
-            return;
-        }
-        if  ($(ev.target).hasClass("draggable-drop") && this.hasNoDragChild(ev.target)) {
-            $(ev.target).addClass("possibleDrop");
-        }
-    }.bind(this));
-
-    dpSpan.addEventListener("dragleave", function (ev) {
-        ev.preventDefault();
-        if (!$(ev.target).hasClass("possibleDrop")) {
-            return;
-        }
-        $(ev.target).removeClass("possibleDrop");
-    });
-
-    dpSpan.addEventListener("drop", function (ev) {
-        ev.preventDefault();
-        if ($(ev.target).hasClass("possibleDrop")) {
-            $(ev.target).removeClass("possibleDrop");
-        }
-        var data = ev.dataTransfer.getData("draggableID");
-        var draggedSpan = document.getElementById(data);
-
-        if ($(ev.target).hasClass("draggable-drop") && this.hasNoDragChild(ev.target) && !this.strangerDanger(draggedSpan)) {  // Make sure element isn't already there--prevents erros w/appending child
-            ev.target.appendChild(draggedSpan);
-        }
-    }.bind(this));
 };
+
+DragNDrop.prototype.setDropEventListeners = function (dpSpan, id) {
+    $(dpSpan).on("dragover", { id: id }, function (ev) {
+        var data = ev.data;
+        ev.preventDefault();
+        var draggedSpan = document.getElementById(ev.originalEvent.dataTransfer.getData("DraggableId"));
+        if (!$.contains(ev.currentTarget, draggedSpan)) {
+            $(ev.currentTarget).addClass("possibleDrop");
+        }
+    });
+
+    $(dpSpan).on("dragleave", { id: id }, function (ev) {
+        var data = ev.data;
+        ev.preventDefault();
+        $(ev.currentTarget).removeClass("possibleDrop");
+    });
+
+    $(dpSpan).on("drop", { id: id }, function (ev) {
+        var data = ev.data;
+        ev.preventDefault();
+        if ($(ev.currentTarget).hasClass("possibleDrop")) {
+            $(ev.currentTarget).removeClass("possibleDrop");
+            var draggedSpan = document.getElementById(ev.originalEvent.dataTransfer.getData("DraggableId"));
+            ev.currentTarget.appendChild(draggedSpan);
+        }
+    });
+};
+
+DragNDrop.prototype.removeDropEventListeners = function (dpSpan) {
+    $(dpSpan).off("dragover");
+    $(dpSpan).off("dragleave");
+    $(dpSpan).off("drop");
+    $(dpSpan).off("dragend");
+};
+
 DragNDrop.prototype.renderFeedbackDiv = function () {
     if (!this.feedBackDiv) {
         this.feedBackDiv = document.createElement("div");
@@ -255,6 +257,7 @@ DragNDrop.prototype.renderFeedbackDiv = function () {
 /*=======================
 == Auxiliary functions ==
 =======================*/
+
 DragNDrop.prototype.strangerDanger = function (testSpan) {
     // Returns true if the test span doesn't belong to this instance of DragNDrop
     var strangerDanger = true;
@@ -266,6 +269,7 @@ DragNDrop.prototype.strangerDanger = function (testSpan) {
     return strangerDanger;
 };
 DragNDrop.prototype.hasNoDragChild = function (parent) {
+    return true;
     // Ensures that each dropZoneDiv can have only one draggable child
     var counter = 0;
     for (var i = 0; i < parent.childNodes.length; i++) {

@@ -91,22 +91,44 @@ DragNDrop.prototype.populate = function () {
 ==      original element with them      ==
 ========================================*/
 DragNDrop.prototype.createNewElements = function () {
+    var horizontal = true;
+
     this.containerDiv = document.createElement("div");
     $(this.containerDiv).addClass("alert alert-warning draggable-container");
+    if (horizontal) {
+        $(this.containerDiv).addClass("horizontal");
+    }
     $(this.containerDiv).text(this.question);
     this.containerDiv.appendChild(document.createElement("br"));
 
     this.dragDropWrapDiv = document.createElement("div");   // Holds the draggables/dropzones, prevents feedback from bleeding in
-    $(this.dragDropWrapDiv).css("display", "block");
+    if (horizontal) {
+        $(this.dragDropWrapDiv).css("display", "flex");
+        $(this.containerDiv).addClass("horizontal");
+        $(this.dragDropWrapDiv).css("width", "100%");
+    } else {
+        $(this.dragDropWrapDiv).css("display", "block");
+    }
     this.containerDiv.appendChild(this.dragDropWrapDiv);
 
     this.draggableDiv = document.createElement("div");
     $(this.draggableDiv).addClass("draggable dragzone");
-
-    this.dropZoneDiv = document.createElement("div");
-    $(this.dropZoneDiv).addClass("draggable");
+    if (horizontal) {
+        $(this.draggableDiv).addClass("horizontal");
+        $(this.draggableDiv).css("width", "100%");
+    }
     this.dragDropWrapDiv.appendChild(this.draggableDiv);
-    this.dragDropWrapDiv.appendChild(this.dropZoneDiv);
+ 
+    this.dropZoneDiv = document.createElement("div");
+    $(this.dropZoneDiv).addClass("draggable dropzone");
+    if (horizontal) {
+        this.dropZoneDiv = this.dragDropWrapDiv;
+        // $(this.dropZoneDiv).css("width", "100%");
+        // $(this.dropZoneDiv).css("display", "flex");
+        // $(this.dropZoneDiv).addClass("horizontal");
+    } else {
+        this.dragDropWrapDiv.appendChild(this.dropZoneDiv);
+    }
 
     this.createButtons();
     this.checkServer("dragNdrop");

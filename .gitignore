@@ -1,6 +1,7 @@
 *.py[cod]
 *.log
 .venv
+env
 
 # C extensions
 *.so

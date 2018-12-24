@@ -40,10 +40,19 @@ TEMPLATE_START = """
 	%(feedback)s
 """
 
-TEMPLATE_OPTION = """
-    <li data-component="draggable" id="%(divid)s_drag%(dnd_label)s">%(dragText)s</li>
-    <li data-component="dropzone" for="%(divid)s_drag%(dnd_label)s">%(dropText)s</li>
+# TEMPLATE_OPTION = """
+#     <li data-component="draggable" id="%(divid)s_drag%(dnd_drag_label)s" for="%(divid)s_drop%(dnd_label)s">%(dragText)s</li>
+#     <li data-component="dropzone" id="%(divid)s_drop%(dnd_drop_label)s">%(dropText)s</li>
+# """
+
+DRAG_TEMPLATE_OPTION = """
+    <li data-component="draggable" id="%(divid)s_drag%(dnd_drag_label)s" for="%(divid)s_drop%(dnd_drop_label)s">%(dragText)s</li>
 """
+
+DROP_TEMPLATE_OPTION = """
+    <li data-component="dropzone" id="%(divid)s_drop%(dnd_drop_label)s">%(dropText)s</li>
+"""
+
 TEMPLATE_END = """</ul></div>"""
 
 
@@ -76,6 +85,7 @@ def visit_dnd_node(self,node):
     self.body.append(res)
 
 def depart_dnd_node(self,node):
+    drops = {}
     res = ""
     # Add all of the possible answers
     okeys = list(node.dnd_options.keys())
@@ -83,11 +93,18 @@ def depart_dnd_node(self,node):
     for k in okeys:
         if 'match' in k:
             x,label = k.split('_')
-            node.dnd_options['dnd_label'] = label
             dragE, dropE = node.dnd_options[k].split("|||")
             node.dnd_options["dragText"] = dragE
             node.dnd_options['dropText'] = dropE
-            res += node.template_option % node.dnd_options
+            node.dnd_options['dnd_drag_label'] = label
+            if dropE in drops:
+                node.dnd_options['dnd_drop_label'] = drops[dropE]
+                res += node.drag_template_option % node.dnd_options
+            else:
+                node.dnd_options['dnd_drop_label'] = label
+                drops[dropE] = label
+                res += node.drag_template_option % node.dnd_options
+                res += node.drop_template_option % node.dnd_options
     res += node.template_end % node.dnd_options
     self.body.append(res)
 
@@ -170,7 +187,8 @@ config values (conf.py):
         dndNode = DragNDropNode(self.options, rawsource=self.block_text)
         dndNode.source, dndNode.line = self.state_machine.get_source_and_line(self.lineno)
         dndNode.template_start = TEMPLATE_START
-        dndNode.template_option = TEMPLATE_OPTION
+        dndNode.drag_template_option = DRAG_TEMPLATE_OPTION
+        dndNode.drop_template_option = DROP_TEMPLATE_OPTION
         dndNode.template_end = TEMPLATE_END
 
         return [dndNode]

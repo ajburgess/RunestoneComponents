@@ -43,26 +43,39 @@ DragNDrop.prototype.init = function (opts) {
 /*======================
 === Update variables ===
 ======================*/
+
 DragNDrop.prototype.populate = function () {
+    var tmp2 = [];
     for (var i = 0; i < this.origElem.childNodes.length; i++) {
-        if ($(this.origElem.childNodes[i]).data("component") === "dropzone") {
+        if ($(this.origElem.childNodes[i]).data("component") === "draggable") {
 
-            var tmp = document.getElementById($(this.origElem.childNodes[i]).attr("for"));
-            var replaceSpan = document.createElement("span");
-            replaceSpan.innerHTML = tmp.innerHTML;
-            replaceSpan.id = this.divid + tmp.id;
-            $(replaceSpan).attr("draggable","true");
-            $(replaceSpan).addClass("draggable-drag");
+            var dragElem = this.origElem.childNodes[i];
+            var dropElem = document.getElementById($(dragElem).attr("for"));
 
-            var otherReplaceSpan = document.createElement("span");
+            var dragSpan = document.createElement("span");
+            dragSpan.innerHTML = dragElem.innerHTML;
+            dragSpan.id = this.divid + dragElem.id;
+            $(dragSpan).attr("draggable","true");
+            $(dragSpan).addClass("draggable-drag");
 
-            otherReplaceSpan.innerHTML = this.origElem.childNodes[i].innerHTML;
-            $(otherReplaceSpan).addClass("draggable-drop");
+            var dropSpan = null;
+            tmp2.forEach(element => {
+                if (element.id === this.divid + dropElem.id) {
+                    dropSpan = element;
+                }
+            });
+            if (dropSpan === null) {
+                dropSpan = document.createElement("span");
+                dropSpan.innerHTML = dropElem.innerHTML;
+                dropSpan.id = this.divid + dropElem.id;
+                $(dropSpan).addClass("draggable-drop");
+                tmp2.push(dropSpan);
+            }
 
-            this.setDragStartEventListener(this, replaceSpan);
+            this.setDragStartEventListener(this, dragSpan);
             var tmpArr = [];
-            tmpArr.push(replaceSpan);
-            tmpArr.push(otherReplaceSpan);
+            tmpArr.push(dragSpan);
+            tmpArr.push(dropSpan);
             this.dragPairArray.push(tmpArr);
         } else if ($(this.origElem.childNodes[i]).data("component") === "question") {
             this.question = this.origElem.childNodes[i].innerHTML;
@@ -72,6 +85,7 @@ DragNDrop.prototype.populate = function () {
     }
 
 };
+
 /*========================================
 == Create new HTML elements and replace ==
 ==      original element with them      ==
@@ -145,27 +159,26 @@ DragNDrop.prototype.createButtons = function () {
 };
 
 DragNDrop.prototype.appendReplacementSpans = function () {
+    for (var i = 0; i < this.dragPairArray.length; i++) {
+        var drop = this.dragPairArray[i][1];
+        if (document.getElementById(drop.id) == null) {
+            this.dropZoneDiv.appendChild(drop);
+        }
+    }
+    
     this.createIndexArray();
     this.randomizeIndexArray();
-    for (var i = 0; i < this.dragPairArray.length; i++) {
+    for (var n = 0; n < this.indexArray.length; n++) {
+        var i = this.indexArray[n];
+        var drag = this.dragPairArray[i][0];
+        var drop = this.draggableDiv;
         if (this.hasStoredDropzones) {
-            if ($.inArray(this.indexArray[i][0], this.pregnantIndexArray) < 0) {
-                this.draggableDiv.appendChild(this.dragPairArray[this.indexArray[i]][0]);
-            }
-        } else {
-            this.draggableDiv.appendChild(this.dragPairArray[this.indexArray[i]][0]);
-        }
-    }
-    this.randomizeIndexArray();
-    for (var i = 0; i < this.dragPairArray.length; i++) {
-        if (this.hasStoredDropzones) {
-            if (this.pregnantIndexArray[this.indexArray[i]] !== "-1") {
-                this.dragPairArray[this.indexArray[i]][1].appendChild(this.dragPairArray[this.pregnantIndexArray[this.indexArray[i]]][0]);
+            if (this.pregnantIndexArray[i] != -1) {
+                drop = this.dragPairArray[this.pregnantIndexArray[i]][1];
             }
         }
-        this.dropZoneDiv.appendChild(this.dragPairArray[this.indexArray[i]][1]);
+        drop.appendChild(drag);
     }
-
 };
 
 DragNDrop.prototype.setDragStartEventListener = function (obj, dgSpan) {
@@ -196,8 +209,7 @@ DragNDrop.prototype.setDragStartEventListener = function (obj, dgSpan) {
                     var draggedSpan = document.getElementById(ev.data.id);
                     ev.currentTarget.appendChild(draggedSpan);
                 }
-                var dropZones = $(ev.target).closest(".draggable-container").find(".dragzone, .draggable-drop");
-                $(dropZones).each(function(i, element) {
+                obj.getAllDropZones(ev.target).each(function(i, element) {
                     obj.removeDropEventListeners(element);
                 });
             });
@@ -205,39 +217,17 @@ DragNDrop.prototype.setDragStartEventListener = function (obj, dgSpan) {
     });
 
     $(dgSpan).on("dragend", function (ev) {
-        var dropZones = $(ev.target).closest(".draggable-container").find(".dragzone, .draggable-drop");
-        $(dropZones).each(function(i, element) {
+        obj.getAllDropZones(ev.target).each(function(i, element) {
             obj.removeDropEventListeners(element);
         });
     });
 };
 
-DragNDrop.prototype.setDropEventListeners = function (dpSpan, id) {
-    $(dpSpan).on("dragover", { id: id }, function (ev) {
-        var data = ev.data;
-        ev.preventDefault();
-        var draggedSpan = document.getElementById(ev.originalEvent.dataTransfer.getData("DraggableId"));
-        if (!$.contains(ev.currentTarget, draggedSpan)) {
-            $(ev.currentTarget).addClass("possibleDrop");
-        }
-    });
-
-    $(dpSpan).on("dragleave", { id: id }, function (ev) {
-        var data = ev.data;
-        ev.preventDefault();
-        $(ev.currentTarget).removeClass("possibleDrop");
-    });
-
-    $(dpSpan).on("drop", { id: id }, function (ev) {
-        var data = ev.data;
-        ev.preventDefault();
-        if ($(ev.currentTarget).hasClass("possibleDrop")) {
-            $(ev.currentTarget).removeClass("possibleDrop");
-            var draggedSpan = document.getElementById(ev.originalEvent.dataTransfer.getData("DraggableId"));
-            ev.currentTarget.appendChild(draggedSpan);
-        }
-    });
-};
+DragNDrop.prototype.getAllDropZones = function (dgSpan) {
+    return $(dgSpan)
+        .closest(".draggable-container")
+        .find(".dragzone, .draggable-drop");
+}
 
 DragNDrop.prototype.removeDropEventListeners = function (dpSpan) {
     $(dpSpan).off("dragover");
@@ -257,32 +247,6 @@ DragNDrop.prototype.renderFeedbackDiv = function () {
 /*=======================
 == Auxiliary functions ==
 =======================*/
-
-DragNDrop.prototype.strangerDanger = function (testSpan) {
-    // Returns true if the test span doesn't belong to this instance of DragNDrop
-    var strangerDanger = true;
-    for (var i = 0; i < this.dragPairArray.length; i++) {
-        if (testSpan === this.dragPairArray[i][0]) {
-            strangerDanger = false;
-        }
-    }
-    return strangerDanger;
-};
-DragNDrop.prototype.hasNoDragChild = function (parent) {
-    return true;
-    // Ensures that each dropZoneDiv can have only one draggable child
-    var counter = 0;
-    for (var i = 0; i < parent.childNodes.length; i++) {
-        if ($(parent.childNodes[i]).attr("draggable") === "true") {
-            counter++;
-        }
-    }
-    if (counter >= 1) {
-        return false;
-    } else {
-        return true;
-    }
-};
 
 DragNDrop.prototype.createIndexArray = function () {
     this.indexArray = [];
@@ -328,19 +292,19 @@ DragNDrop.prototype.dragEval = function (logFlag) {
     this.incorrectNum = 0;
     this.dragNum = this.dragPairArray.length;
     for (var i = 0; i < this.dragPairArray.length; i++) {
-        if (!$(this.dragPairArray[i][1]).has(this.dragPairArray[i][0]).length) {
+        var drag = this.dragPairArray[i][0];
+        var expectedDrop = this.dragPairArray[i][1];
+        var actualDrop = drag.parentElement;
+        if (actualDrop != expectedDrop) {
             this.correct = false;
-            $(this.dragPairArray[i][1]).addClass("drop-incorrect");
+            $(drag).addClass("drop-incorrect");
             this.incorrectNum++;
-        } else {
-            $(this.dragPairArray[i][1]).removeClass("drop-incorrect");
         }
-        if (this.hasNoDragChild(this.dragPairArray[i][1])) {
-            this.unansweredNum++;
-            this.incorrectNum -= 1;
+        else {
+            $(drag).removeClass("drop-incorrect");
         }
     }
-    this.correctNum = this.dragNum - this.incorrectNum - this.unansweredNum;
+    this.correctNum = this.dragNum - this.incorrectNum;
     this.setLocalStorage({"correct": (this.correct ? "T" : "F")});
     this.renderFeedback();
     if (logFlag) {  // Sometimes we don't want to log the answers--for example, on re-load of a timed exam
@@ -416,13 +380,17 @@ DragNDrop.prototype.setLocalStorage = function (data) {
     if (data.answer === undefined) {   // If we didn't load from the server, we must generate the data
         this.pregnantIndexArray = [];
         for (var i = 0; i < this.dragPairArray.length; i++) {
-            if (!this.hasNoDragChild(this.dragPairArray[i][1])) {
-                for (var j = 0; j < this.dragPairArray.length; j++) {
-                    if ($(this.dragPairArray[i][1]).has(this.dragPairArray[j][0]).length) {
-                        this.pregnantIndexArray.push(j);
-                    }
+            var drag = this.dragPairArray[i][0];
+            var dropped = false;
+            for (var j = 0; j < this.dragPairArray.length; j++) {
+                var drop = this.dragPairArray[j][1];
+                if ($(drop).has(drag).length) {
+                    this.pregnantIndexArray.push(j);
+                    dropped = true;
+                    break;
                 }
-            } else {
+            }
+            if (!dropped) {
                 this.pregnantIndexArray.push(-1);
             }
         }

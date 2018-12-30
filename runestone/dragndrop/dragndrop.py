@@ -38,6 +38,7 @@ TEMPLATE_START = """
 <ul data-component="dragndrop" id="%(divid)s">
     <span data-component="question">%(qnumber)s: %(question)s</span>
 	%(feedback)s
+    %(orientation)s
 """
 
 # TEMPLATE_OPTION = """
@@ -80,6 +81,11 @@ def visit_dnd_node(self,node):
     else:
         node.dnd_options["feedback"] = ""
 
+    if "orientation" in node.dnd_options:
+        node.dnd_options["orientation"] = "<span data-component=orientation>" + node.dnd_options["orientation"] + "</span>"
+    else:
+        node.dnd_options["orientation"] = ""
+
     res = res % node.dnd_options
 
     self.body.append(res)
@@ -119,6 +125,7 @@ class DragNDrop(RunestoneIdDirective):
     """
 .. dragndrop:: identifier
     :feedback: Feedback that is displayed if things are incorrectly matched--is optional
+    :orientation: horizontal | vertical (default)
     :match_1: Draggable element text|||Dropzone to be matched with text
     :match_2: Drag to Answer B|||Answer B
     :match_3: Draggable text|||Text of dropzone
@@ -135,6 +142,7 @@ config values (conf.py):
     has_content = True
     option_spec = RunestoneIdDirective.option_spec.copy()
     option_spec.update({"feedback":directives.unchanged,
+        "orientation":directives.unchanged,
         "match_1":directives.unchanged,
         "match_2":directives.unchanged,
         "match_3":directives.unchanged,
@@ -165,6 +173,7 @@ config values (conf.py):
             :return:
             .. dragndrop:: identifier
                 :feedback: Feedback that is displayed if things are incorrectly matched--is optional
+                :orientation: horizontal | vertical (default)
                 :match_1: Draggable element text|||Dropzone to be matched with text
                 :match_2: Drag to Answer B|||Answer B
                 :match_3: Draggable text|||Text of dropzone

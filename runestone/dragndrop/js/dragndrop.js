@@ -36,6 +36,7 @@ DragNDrop.prototype.init = function (opts) {
     this.feedback = "";
     this.dragPairArray = [];
     this.question = "";
+    this.orientation = "";
     this.populate();   // Populates this.dragPairArray, this.feedback and this.question
 
     this.createNewElements();
@@ -81,9 +82,10 @@ DragNDrop.prototype.populate = function () {
             this.question = this.origElem.childNodes[i].innerHTML;
         } else if ($(this.origElem.childNodes[i]).data("component") === "feedback") {
             this.feedback = this.origElem.childNodes[i].innerHTML;
+        } else if ($(this.origElem.childNodes[i]).data("component") === "orientation") {
+            this.orientation = this.origElem.childNodes[i].textContent;
         }
     }
-
 };
 
 /*========================================
@@ -91,15 +93,17 @@ DragNDrop.prototype.populate = function () {
 ==      original element with them      ==
 ========================================*/
 DragNDrop.prototype.createNewElements = function () {
-    var horizontal = true;
+    var horizontal = (this.orientation === "horizontal");
 
     this.containerDiv = document.createElement("div");
     $(this.containerDiv).addClass("alert alert-warning draggable-container");
     if (horizontal) {
         $(this.containerDiv).addClass("horizontal");
     }
-    $(this.containerDiv).text(this.question);
-    this.containerDiv.appendChild(document.createElement("br"));
+    var t = document.createElement("div");
+    $(t).text(this.question);
+    $(t).addClass("question");
+    this.containerDiv.appendChild(t);
 
     this.dragDropWrapDiv = document.createElement("div");   // Holds the draggables/dropzones, prevents feedback from bleeding in
     if (horizontal) {
@@ -123,9 +127,6 @@ DragNDrop.prototype.createNewElements = function () {
     $(this.dropZoneDiv).addClass("draggable dropzone");
     if (horizontal) {
         this.dropZoneDiv = this.dragDropWrapDiv;
-        // $(this.dropZoneDiv).css("width", "100%");
-        // $(this.dropZoneDiv).css("display", "flex");
-        // $(this.dropZoneDiv).addClass("horizontal");
     } else {
         this.dragDropWrapDiv.appendChild(this.dropZoneDiv);
     }
@@ -296,6 +297,7 @@ DragNDrop.prototype.randomizeIndexArray = function () {
 ==============================*/
 DragNDrop.prototype.resetDraggables = function () {
     for (var i = 0; i < this.dragPairArray.length; i++) {
+        $(this.dragPairArray[i][0]).removeClass("drop-incorrect");
         for (var j = 0; j < this.dragPairArray[i][1].childNodes.length; j++) {
             if ($(this.dragPairArray[i][1].childNodes[j]).attr("draggable") === "true") {
                 this.draggableDiv.appendChild(this.dragPairArray[i][1].childNodes[j]);
@@ -310,7 +312,6 @@ DragNDrop.prototype.resetDraggables = function () {
 
 DragNDrop.prototype.dragEval = function (logFlag) {
     this.correct = true;
-    this.unansweredNum = 0;
     this.incorrectNum = 0;
     this.dragNum = this.dragPairArray.length;
     for (var i = 0; i < this.dragPairArray.length; i++) {
@@ -353,7 +354,7 @@ DragNDrop.prototype.renderFeedback = function () {
         $(this.feedBackDiv).html("You are correct!");
         $(this.feedBackDiv).attr("class", "alert alert-info draggable-feedback");
     } else {
-        $(this.feedBackDiv).html("Incorrect. " + "You got " + this.correctNum + " correct and " + this.incorrectNum + " incorrect out of " + this.dragNum + ". You left " + this.unansweredNum + " blank. " + this.feedback);
+        $(this.feedBackDiv).html("Incorrect!");
         $(this.feedBackDiv).attr("class", "alert alert-danger draggable-feedback");
     }
 };

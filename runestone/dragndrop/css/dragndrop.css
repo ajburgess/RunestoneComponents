@@ -1,19 +1,38 @@
 .draggable {
-    margin-left: 2%;
-    margin-top: 5px;
+    margin-left: 0px;
+    /* margin-top: 5px; */
     display:inline;
-    /* float:left; */
-	text-align: left;
+    float:left;
 	vertical-align: top;
     background-color: #efefff;
-    font-family: monospace;
-    font-size: 120%;
+    /* font-family: monospace; */
+    /* font-size: 120%; */
     padding-bottom: 10px;
-    /* min-width: 48%;
-    max-width: 48%; */
-    border: 1px solid #efefff;
+    border: 2px solid #efefff;
     box-sizing: border-box;
 }
+
+.draggable.dragzone {
+    min-width: 50%;
+    max-width: 50%;
+}
+
+.draggable.dropzone {
+    margin-left: 1%;
+    min-width: 49%;
+    max-width: 49%;
+}
+
+.draggable.horizontal {
+    float: none;
+    min-width: initial;
+    max-width: initial;    
+}
+
+.draggable.dragzone.horizontal {
+    margin-right: 4px;
+}
+
 .drag-button {
     display: inline-block;
 }
@@ -26,7 +45,7 @@
     color: white;
 }
 .drop-incorrect {
-    border: 1px solid red !important;
+    border: 2px solid red !important;
     background-color: #f2dede !important;
 }
 .drag-reset:enabled {
@@ -39,7 +58,7 @@
     border-radius: 10px;
     display: block;
     background-color:#EFEFEF;
-    border:1px solid lightgray;
+    border:2px solid lightgray;
     padding:10px;
     margin-top: 5px;
     cursor: move;
@@ -56,19 +75,28 @@
     border-radius: 10px;
     display: block;
     background-color:#DDDDDD;
-    border:1px solid lightgray;
+    border:2px solid lightgray;
     padding:10px;
     margin-top: 5px;
 }
 
 .draggable-container {
-    text-align:center;
+    text-align:left;
+}
+
+.draggable-container div.question {
+    margin-bottom: 4px;
+    font-weight: bold;
 }
 
 .possibleDrop {
     border-color: #000000;
     background-color: #CCCCCC;
     cursor: move;
+}
+
+.dragzone.possibleDrop {
+    background-color: #d1d1f7;
 }
 
 div.horizontal {
@@ -82,4 +110,8 @@ div.horizontal > div > span {
 .draggable-drag, .draggable-drop {
     margin-left: 4px;
     margin-right: 4px;
+}
+
+div.horizontal .draggable-drop {
+    margin-top: 0px;
 }

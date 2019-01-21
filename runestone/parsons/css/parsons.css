@@ -1,5 +1,5 @@
 .parsons .sortable-code-container {
-	text-align: center;
+	/*text-align: center;*/
 }
 .parsons .sortable-code-container:not(.block) {
 	/* Remove text highlighting in widget */
@@ -242,18 +242,20 @@
 	margin: 10px 0;
 }
 .parsons .parsons-text {
-	max-width: 500pt;
+	/*max-width: 500pt;*/
 	margin-left: auto;
 	margin-right: auto;
+        font-weight: bold;
 }
 .parsons .parsons-controls{
-	max-width: 500pt;
+	/*max-width: 500pt;*/
 	margin-left: auto;
 	margin-right: auto;
-	text-align:center;
+	/*text-align:center;*/
+        
 }
 .parsons [role="tooltip"] {
-	max-width: 500pt;
+	/*max-width: 500pt;*/
 	margin-left: auto;
 	margin-right: auto;
 	margin-top: 5px;

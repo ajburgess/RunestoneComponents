@@ -271,6 +271,13 @@ DragNDrop.prototype.renderFeedbackDiv = function () {
 == Auxiliary functions ==
 =======================*/
 
+DragNDrop.prototype.shuffleDivChildren = function (parentDiv) {
+    for (var i = 0; i < parentDiv.childNodes.length * 5; i++) {
+        var randomIndex = Math.floor(Math.random() * parentDiv.childNodes.length);
+        parentDiv.appendChild(parentDiv.childNodes[randomIndex]);
+    }
+}
+
 DragNDrop.prototype.createIndexArray = function () {
     this.indexArray = [];
     for (var i = 0; i < this.dragPairArray.length; i++) {
@@ -305,6 +312,7 @@ DragNDrop.prototype.resetDraggables = function () {
         }
     }
     this.feedBackDiv.style.display = "none";
+    this.shuffleDivChildren(this.draggableDiv);
 };
 /*===========================
 == Evaluation and feedback ==

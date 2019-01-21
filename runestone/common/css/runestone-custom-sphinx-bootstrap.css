@@ -1,5 +1,9 @@
 /* Runestone custom modifications */
 
+code {
+    color: black !important;
+}
+
 body {
     /* padding-top: 60px; */
     /* background-color: #eeeeee; */

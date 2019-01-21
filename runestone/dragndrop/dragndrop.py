@@ -129,7 +129,7 @@ class DragNDrop(RunestoneIdDirective):
     :match_1: Draggable element text|||Dropzone to be matched with text
     :match_2: Drag to Answer B|||Answer B
     :match_3: Draggable text|||Text of dropzone
-    etc. (up to 20 matches)
+    etc. (up to 30 matches)
 
     The question goes here.
 
@@ -163,7 +163,16 @@ config values (conf.py):
         "match_18":directives.unchanged,
         "match_19":directives.unchanged,
         "match_20":directives.unchanged,
-
+        "match_21":directives.unchanged,
+        "match_22":directives.unchanged,
+        "match_23":directives.unchanged,
+        "match_24":directives.unchanged,
+        "match_25":directives.unchanged,
+        "match_26":directives.unchanged,
+        "match_27":directives.unchanged,
+        "match_28":directives.unchanged,
+        "match_29":directives.unchanged,
+        "match_30":directives.unchanged
     })
 
     def run(self):
@@ -177,7 +186,7 @@ config values (conf.py):
                 :match_1: Draggable element text|||Dropzone to be matched with text
                 :match_2: Drag to Answer B|||Answer B
                 :match_3: Draggable text|||Text of dropzone
-                ...etc...(up to 20 matches)
+                ...etc...(up to 30 matches)
 
                 The question goes here.
         """

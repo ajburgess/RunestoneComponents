@@ -184,7 +184,7 @@ DragNDrop.prototype.createButtons = function () {
 DragNDrop.prototype.appendReplacementSpans = function () {
     for (var i = 0; i < this.dragPairArray.length; i++) {
         var drop = this.dragPairArray[i][1];
-        if (document.getElementById(drop.id) == null) {
+        if (!this.dropZoneDiv.contains(drop)) {
             this.dropZoneDiv.appendChild(drop);
         }
     }

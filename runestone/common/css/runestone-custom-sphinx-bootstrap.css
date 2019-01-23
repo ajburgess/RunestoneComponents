@@ -4,6 +4,10 @@ code {
     color: black !important;
 }
 
+.navLink {
+    visibility: hidden;
+}
+
 body {
     /* padding-top: 60px; */
     /* background-color: #eeeeee; */

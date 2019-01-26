@@ -231,6 +231,7 @@ DragNDrop.prototype.setDragStartEventListener = function (obj, dgSpan) {
                     $(ev.currentTarget).removeClass("possibleDrop");
                     var draggedSpan = document.getElementById(ev.data.id);
                     ev.currentTarget.appendChild(draggedSpan);
+                    obj.slideEmptyDropSlotsToTop();
                 }
                 obj.getAllDropZones(ev.target).each(function(i, element) {
                     obj.removeDropEventListeners(element);
@@ -270,6 +271,19 @@ DragNDrop.prototype.renderFeedbackDiv = function () {
 /*=======================
 == Auxiliary functions ==
 =======================*/
+
+DragNDrop.prototype.slideEmptyDropSlotsToTop = function () {
+    var finished = false;
+    while (!finished) {
+        finished = true;
+        for (var i = 0; i < this.dropZoneDiv.childNodes.length - 1; i++) {
+            if (this.dropZoneDiv.childNodes[i].children.length > 0 && this.dropZoneDiv.childNodes[i + 1].children.length == 0) {
+                this.dropZoneDiv.insertBefore(this.dropZoneDiv.childNodes[i + 1], this.dropZoneDiv.childNodes[i]);
+                finished = false;
+            }
+        }
+    }
+}
 
 DragNDrop.prototype.shuffleDivChildren = function (parentDiv) {
     for (var i = 0; i < parentDiv.childNodes.length * 5; i++) {
@@ -376,6 +390,7 @@ DragNDrop.prototype.restoreAnswers = function (data) {
     this.minheight = data.minHeight;
     this.pregnantIndexArray = data.answer.split(";");
     this.finishSettingUp();
+    this.slideEmptyDropSlotsToTop();
 };
 
 DragNDrop.prototype.checkLocalStorage = function () {
@@ -394,6 +409,7 @@ DragNDrop.prototype.checkLocalStorage = function () {
                 localStorage.removeItem(this.localStorageKey());
                 this.hasStoredDropzones = false;
                 this.finishSettingUp();
+                this.slideEmptyDropSlotsToTop();
                 return;
             }
             this.pregnantIndexArray = storedObj.answer.split(";");
@@ -405,6 +421,7 @@ DragNDrop.prototype.checkLocalStorage = function () {
         }
     }
     this.finishSettingUp();
+    this.slideEmptyDropSlotsToTop();
 };
 
 DragNDrop.prototype.setLocalStorage = function (data) {

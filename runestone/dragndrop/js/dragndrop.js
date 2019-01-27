@@ -273,6 +273,10 @@ DragNDrop.prototype.renderFeedbackDiv = function () {
 =======================*/
 
 DragNDrop.prototype.slideEmptyDropSlotsToTop = function () {
+    // Sliding up only applies to vertical drop zones, not horizontal ones...
+    if (this.orientation === "horizontal")
+        return;
+
     var finished = false;
     while (!finished) {
         finished = true;
